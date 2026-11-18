@@ -1,6 +1,6 @@
 # Methodology: App Store Precheck
 
-Coverage inventory: 94/104 leaf sections (90%); 94 touched, 2 positive-only; 72 static vectors, 56 deep-review checks, 20 dynamic checks, 5 vision checks, 10 human-only sections.
+Coverage inventory: 94/104 leaf sections (90%); 94 touched, 2 positive-only; 81 static vectors, 56 deep-review checks, 20 dynamic checks, 5 vision checks, 10 human-only sections.
 Coverage means sections touched, not automatic verification.
 
 The detailed reference behind the skill. Read the section you need; you do not need to read this
@@ -154,6 +154,15 @@ citable like any sub-section; every link and citation resolves `N.0` back to `#N
 | 70 | **4.7.2 miniapp-native-bridge** *(advisory)* | All four signals must coexist in one file: handler, remote JS URL, evaluation and native-sensitive API. Does not resolve bridge access control. |
 | 71 | **5.2.4 apple-endorsement-claims** *(advisory)* | Narrow English endorsement/official-product patterns; authorized claims still require human confirmation. Ordinary iPhone compatibility text stays clean. |
 | 72 | **2.5.19 review-mode-gate** *(advisory)* | Review-detection / hide-for-review identifiers and remote-config keys, App Store build-flag branches, date-gated unlocks, and obfuscation tooling in dependencies or source. Store-review prompts (`SKStoreReviewController`, `requestReview`) and product-review vocabulary stay clean; a hit means "show the reviewer what ships", not proof of a hidden feature. |
+| 73 | **4.3 portfolio-similarity** *(advisory)* | **opt-in** (`--portfolio <dir>`, repeatable, or config `.portfolio`). 4.3(a) near-identical apps: weighted Jaccard of source file/type names (0.35), user-facing string literals (0.35), asset names (0.15) and dependencies (0.15) against each sibling repo; ≥ 0.60 is a WARN naming the sibling. Dimensions empty on both sides are excluded. Shared infrastructure is normal; this flags shared *product*. Silent (no line, no gap) when not requested. |
+| 74 | **2.2 release-debug-build** *(advisory)* | Scheme `ArchiveAction` set to a Debug configuration, `DEBUG` in a Release configuration's `SWIFT_ACTIVE_COMPILATION_CONDITIONS` / `GCC_PREPROCESSOR_DEFINITIONS` / `OTHER_SWIFT_FLAGS`, or Release built `-Onone`. Reads the repo's project files, not the archive. |
+| 75 | **1.6 embedded-secret** *(advisory)* | Server-side credentials in release source, plists or `.xcconfig`: Anthropic/OpenAI keys, AWS access keys, Stripe live secret keys, GitHub/Slack tokens, PEM private keys, Supabase `service_role` JWTs. Public client keys (Firebase, RevenueCat public, Supabase anon, Sentry DSN) are deliberately not matched; `#if DEBUG` and preview code are ignored; the value is never echoed (kind + 4-char prefix only). |
+| 76 | **2.1 localization-format-mismatch** *(advisory)* | A translation whose format specifiers differ from its source (`%@` vs `%lld`, a dropped argument) in `.xcstrings` or `<lang>.lproj/*.strings`; positional reordering (`%2$@ … %1$@`) and String Catalog substitutions (`%#@name@`) are understood, plural/device variations are not compared. Also flags a String Catalog that is not valid JSON. |
+| 77 | **5.1.1 purpose-string-localization** *(advisory)* | Localized app (any non-English language in a String Catalog or `.lproj`) whose `NS*UsageDescription` keys (Info.plist or `INFOPLIST_KEY_*`) are missing from `InfoPlist.xcstrings` / `<lang>.lproj/InfoPlist.strings` for some language. |
+| 78 | **3.1.1 storekit-transaction-listener** *(advisory)* | StoreKit 2 purchase flow (`Product.products(for:)` / `.purchase(`) with no `Transaction.updates` listener; RevenueCat, Adapty, Qonversion, Apphud and Glassfy count as listeners. Missing it drops renewals, refunds, Ask to Buy approvals and offer-code redemptions. |
+| 79 | **2.1 bonjour-services-missing** *(advisory)* | Bonjour browsing (`NWBrowser`, `NetServiceBrowser`, `DNSServiceBrowse`, `MCNearbyServiceBrowser`) without `NSBonjourServices` in any plist or `INFOPLIST_KEY_NSBonjourServices`; on iOS 14+ discovery fails silently in front of the reviewer. |
+| 80 | **2.5.1 entitlement-unused** *(advisory)* | A sensitive entitlement enabled with no code using its API (HealthKit, HomeKit, Network Extension, VPN, NFC, Apple Pay, Wi-Fi info, Family Controls, critical alerts, WeatherKit, iCloud containers). Only capabilities with an unambiguous API are checked; all targets' source counts. |
+| 81 | **2.3.1 privacy-claim-contradiction** *(advisory)* | An offline / on-device / "never leaves your device" / "no data collected" claim in store metadata or UI copy while release source talks to a cloud AI provider or imports an analytics, attribution or crash SDK. The claim may be precise (local processing with crash reports) — a human reads both sides. |
 
 New source checks skip compiled bundles and pruned dependencies. Unreadable or incomplete
 inputs produce additive coverage gaps: source/manifest reads are bounded to 2 MiB and
@@ -481,6 +490,15 @@ completeness test (`is_gap_record`, convention: ids ending in `-not-audited`).
 | 70 | `miniapp-native-bridge` | source | judgment-call | — |
 | 71 | `apple-endorsement-claims` | metadata | judgment-call | — |
 | 72 | `review-mode-gate` | source | judgment-call | — |
+| 73 | `portfolio-similarity` | source | judgment-call | — |
+| 74 | `release-debug-build` | build-setting | review-risk | — |
+| 75 | `embedded-secret` | source | judgment-call | — |
+| 76 | `localization-format-mismatch` | resource | review-risk | — |
+| 77 | `purpose-string-localization` | resource | judgment-call | — |
+| 78 | `storekit-transaction-listener` | source | judgment-call | — |
+| 79 | `bonjour-services-missing` | source | review-risk | — |
+| 80 | `entitlement-unused` | manifest | judgment-call | — |
+| 81 | `privacy-claim-contradiction` | source | judgment-call | — |
 
 *Generated from `scripts/evidence.sh`; `tests/test-evidence.sh` keeps it honest.*
 

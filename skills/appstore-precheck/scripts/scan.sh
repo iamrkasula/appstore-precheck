@@ -16,6 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FORMAT="text"
 SCAN_DIR=""
 OPT_NO_RUNTIME=0 OPT_DEMO=0 OPT_ASC_VERSION="" OPT_ASC_INFO=""
+OPT_PORTFOLIO=()  # §73: sibling app repos to compare for 4.3(a); opt-in, repeatable
 OPT_BUILD=0 OPT_APP="" OPT_METADATA=0 OPT_ASC="" OPT_URLS=0 OPT_DYN_BLOCK=0 OPT_DRY=0 OPT_OUT="" OPT_TEMP="" OPT_RAN_OK=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -44,6 +45,11 @@ while [[ $# -gt 0 ]]; do
     --check-urls) OPT_URLS=1; OPT_METADATA=1; shift ;;
     --dynamic-blocking) OPT_DYN_BLOCK=1; shift ;;
     --dry-run) OPT_DRY=1; shift ;;
+    --portfolio)
+      if [[ $# -lt 2 ]]; then echo "scan.sh: --portfolio needs a path" >&2; exit 64; fi
+      # Resolved against the caller's cwd now, before --dir moves us to the scanned repo.
+      OPT_PORTFOLIO+=("$(cd "$2" 2>/dev/null && pwd || printf '%s' "$2")"); shift 2 ;;
+    --portfolio=*) OPT_PORTFOLIO+=("$(cd "${1#*=}" 2>/dev/null && pwd || printf '%s' "${1#*=}")"); shift ;;
     --out)
       if [[ $# -lt 2 ]]; then echo "scan.sh: --out needs a path" >&2; exit 64; fi
       OPT_OUT="$2"; shift 2 ;;
@@ -102,6 +108,15 @@ cfg_bool() { # cfg_bool <json-path> — echoes "true"/"false"
 
 optin_trust
 optin_validate || exit $?
+
+# §73 4.3(a) portfolio comparison: --portfolio <dir> (repeatable) or config `.portfolio`
+# (array of paths relative to the repo root). Resolved before any check runs; a path that
+# is not a directory is dropped here and reported by the rule as unreadable.
+PORTFOLIO_ARGS=()
+if [[ "${#OPT_PORTFOLIO[@]}" -eq 0 && -f "$CONFIG" ]] && have_jq; then
+  while IFS= read -r _pf; do [[ -n "$_pf" ]] && OPT_PORTFOLIO+=("$_pf"); done < <(jq -r '.portfolio // [] | .[]?' "$CONFIG" 2>/dev/null)
+fi
+for _pf in "${OPT_PORTFOLIO[@]+"${OPT_PORTFOLIO[@]}"}"; do PORTFOLIO_ARGS+=(--portfolio "$_pf"); done
 
 _LAST_SUPPRESSED=0
 

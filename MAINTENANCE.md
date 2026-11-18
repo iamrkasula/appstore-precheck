@@ -1,6 +1,6 @@
 # Maintenance
 
-Coverage inventory: 94/104 leaf sections (90%); 94 touched, 2 positive-only; 72 static vectors, 56 deep-review checks, 20 dynamic checks, 5 vision checks, 10 human-only sections.
+Coverage inventory: 94/104 leaf sections (90%); 94 touched, 2 positive-only; 81 static vectors, 56 deep-review checks, 20 dynamic checks, 5 vision checks, 10 human-only sections.
 
 This scanner encodes Apple's App Store Review Guidelines, a moving target. The checks are static
 and hand maintained, so they drift out of date unless someone reconciles them on a schedule. This
@@ -22,7 +22,7 @@ Run Phase 0 (the live guideline drift check) against the tracked baseline and ac
 
 ### Quarterly: vector and pattern review
 
-Walk the 72 vectors in the methodology table and confirm each still matches how Apple reviews
+Walk the 81 vectors in the methodology table and confirm each still matches how Apple reviews
 today. Also spot-check the 56 Pierre deep-review checks in
 [`references/pierre-deep-review.md`](skills/appstore-precheck/references/pierre-deep-review.md)
 after major guideline updates. Pay special attention to the signal lists that go stale fastest:

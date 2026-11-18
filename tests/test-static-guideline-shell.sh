@@ -41,7 +41,7 @@ command() {
 # shellcheck source=skills/appstore-precheck/scripts/lib/scan-guidelines.sh
 source "$SCRIPT_DIR/lib/scan-guidelines.sh"
 unset -f command
-assert_eq "$(printf '%s' "$COVERAGE_GAPS_JSON" | jq length)" 17 'unavailable reader yields 17 unique rule gaps'
+assert_eq "$(printf '%s' "$COVERAGE_GAPS_JSON" | jq length)" 25 'unavailable reader yields 25 unique rule gaps (opt-in §73 not requested: no gap)'
 # D1: jq present on PATH but failing must not empty the slug list in the SKIP line.
 stub="$(mktemp -d)"; printf '#!/bin/sh\nexit 127\n' > "$stub/jq"; chmod +x "$stub/jq"
 line="$(PATH="$stub:$PATH" bash "$SCRIPT_DIR/scan.sh" --dir "$(mktemp -d)" 2>/dev/null | grep '^SKIP: modular-checks-not-audited' || true)"

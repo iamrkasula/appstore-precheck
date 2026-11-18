@@ -69,8 +69,10 @@ class ReviewStatic(unittest.TestCase):
 
     def test_m1_empty_source_tree_is_not_clean(self):
         result = evaluate({})
+        # portfolio-similarity is opt-in: with no --portfolio it is OFF (no line), never PASS.
+        self.assertEqual(result['portfolio-similarity']['status'], 'OFF')
         for key in rules.CHECKS:
-            if key not in ('release-notes-specificity', 'apple-endorsement-claims'):
+            if key not in ('release-notes-specificity', 'apple-endorsement-claims', 'portfolio-similarity'):
                 self.assertEqual(result[key]['status'], 'SKIP', key)
 
     def test_browser_brand_in_source_file_name_is_not_an_engine(self):

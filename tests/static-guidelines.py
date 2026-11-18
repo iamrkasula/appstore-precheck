@@ -195,6 +195,53 @@ class StaticRules(unittest.TestCase):
 
 
 
+    def test_portfolio_similarity_is_opt_in_and_flags_near_duplicates(self):
+        files = {'App.swift': 'struct TipView: View { let a = "Split the bill fairly"; let b = "Choose a tip percentage" }\nclass TipStore {}',
+                 'Assets.xcassets/Coin.imageset/Contents.json': '{}',
+                 'Package.resolved': '{"pins":[{"identity":"lottie-ios"}]}'}
+        self.assertEqual(evaluate(files)['portfolio-similarity']['status'], 'OFF')
+        spec = importlib.util.spec_from_file_location('static_guidelines', ENGINE)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as folder:
+            base = pathlib.Path(folder)
+            for name, extra in (('app', ''), ('twin', ''), ('other', 'different')):
+                for path, value in files.items():
+                    target = base / name / path
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(value if not extra else 'struct JournalEntry {}\nlet t = "Write today\'s entry"')
+            app = base / 'app'
+            twin = module.evaluate(app, app / 'fastlane/metadata', app / 'Info.plist', [], [base / 'twin'])
+            self.assertEqual(twin['portfolio-similarity']['status'], 'WARN', twin['portfolio-similarity'])
+            self.assertIn('twin', twin['portfolio-similarity']['reason'])
+            other = module.evaluate(app, app / 'fastlane/metadata', app / 'Info.plist', [], [base / 'other'])
+            self.assertEqual(other['portfolio-similarity']['status'], 'PASS', other['portfolio-similarity'])
+            missing = module.evaluate(app, app / 'fastlane/metadata', app / 'Info.plist', [], [base / 'nope'])
+            self.assertEqual(missing['portfolio-similarity']['status'], 'SKIP')
+
+    def test_release_checks_ignore_debug_and_preview_code(self):
+        key = 'sk-ant-' + 'x' * 32
+        result = evaluate({'App.swift': 'let a = 1\n#if DEBUG\nlet k = "%s"\n#else\nlet r = 2\n#endif\n#Preview { Text("x") }\nlet p = "%s"' % (key, key)})
+        self.assertEqual(result['embedded-secret']['status'], 'PASS', result['embedded-secret'])
+        result = evaluate({'App.swift': '#if !DEBUG\nlet live = "%s"\n#endif' % key})
+        self.assertEqual(result['embedded-secret']['status'], 'WARN')
+        self.assertNotIn('x' * 8, result['embedded-secret']['reason'], 'the credential value is never echoed')
+
+    def test_release_build_flags_debug_condition_in_release_configuration(self):
+        pbx = ('A1 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";}; name = Release; };\n'
+               'A2 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;}; name = Debug; };')
+        self.assertEqual(evaluate({'App.swift': 'let x = 1', 'App.xcodeproj/project.pbxproj': pbx})['release-debug-build']['status'], 'WARN')
+        self.assertEqual(evaluate({'App.swift': 'let x = 1', 'App.xcodeproj/project.pbxproj': pbx.split('\n')[1]})['release-debug-build']['status'], 'PASS')
+
+    def test_format_check_understands_positions_and_substitutions(self):
+        catalog = {"sourceLanguage": "en", "strings": {"%lld of %lld": {"localizations": {
+            "en": {"stringUnit": {"state": "translated", "value": "%#@done@ of %2$lld"},
+                   "substitutions": {"done": {"argNum": 1, "formatSpecifier": "lld", "variations": {}}}},
+            "ja": {"stringUnit": {"state": "translated", "value": "%2$lld件中%1$lld件"}}}}}}
+        result = evaluate({'App.swift': 'let x = 1', 'Localizable.xcstrings': json.dumps(catalog)})
+        self.assertEqual(result['localization-format-mismatch']['status'], 'PASS', result['localization-format-mismatch'])
+
+
 def case_test(case, kind):
     def test(self):
         result = evaluate(case[kind])[case['rule_id']]

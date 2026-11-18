@@ -43,6 +43,11 @@ rule_slug() {
     68) echo game-center-id-sharing ;;  69) echo metadata-emoji ;;
     70) echo miniapp-native-bridge ;;  71) echo apple-endorsement-claims ;;
     72) echo review-mode-gate ;;
+    73) echo portfolio-similarity ;;  74) echo release-debug-build ;;
+    75) echo embedded-secret ;;  76) echo localization-format-mismatch ;;
+    77) echo purpose-string-localization ;;  78) echo storekit-transaction-listener ;;
+    79) echo bonjour-services-missing ;;  80) echo entitlement-unused ;;
+    81) echo privacy-claim-contradiction ;;
     *) echo "" ;;
   esac
 }

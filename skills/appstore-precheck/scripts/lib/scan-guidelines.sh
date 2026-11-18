@@ -12,6 +12,7 @@ done
 if command -v python3 >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
   STATIC_GUIDELINES_JSON="$(python3 -B "$SCRIPT_DIR/lib/static-reader.py" \
     --root "$ROOT" --metadata "${META_DIR:-/nonexistent}" --plist "${INFO_PLIST:-/nonexistent}" \
+    "${PORTFOLIO_ARGS[@]+"${PORTFOLIO_ARGS[@]}"}" \
     "${STATIC_READER_EXCLUDES[@]+"${STATIC_READER_EXCLUDES[@]}"}" )" || STATIC_GUIDELINES_JSON='{"_reader_error":"reader invocation failed; see stderr"}'
 fi
 
@@ -48,14 +49,17 @@ static_guideline_gap() {
   fi
 }
 
-# §56–§72: slug | guideline | evidence class. Keep coverage-sections.py in sync.
+# §56–§81: slug | guideline | evidence class. Keep coverage-sections.py in sync.
 while IFS='|' read -r _static_slug _static_guideline _static_evidence; do
+  # §73 is opt-in: not requested means no line and no coverage gap, even without a reader.
+  if [[ "$_static_slug" == portfolio-similarity && -z "${PORTFOLIO_ARGS[*]+set}" ]]; then continue; fi
   set_rule "$_static_slug"
   set_evidence "$_static_evidence"
   static_guideline_select "$_static_slug"
   case "$STATIC_STATUS" in
     WARN) warn "$_static_guideline $_static_slug — $STATIC_REASON" "$STATIC_FILE" ;;
     PASS) pass "$_static_guideline $_static_slug — $STATIC_REASON" ;;
+    OFF) ;;  # opt-in rule not requested (§73 without --portfolio): no line, not a gap
     *) static_guideline_gap "$_static_slug" "$_static_guideline" "$STATIC_REASON" ;;
   esac
   if [[ "$_static_slug" == metadata-emoji ]]; then STATIC_EMOJI_STATUS="$STATIC_STATUS"; fi
@@ -77,6 +81,15 @@ metadata-emoji|4.5.6|resource
 miniapp-native-bridge|4.7.2|source
 apple-endorsement-claims|5.2.4|metadata
 review-mode-gate|2.5.19|source
+portfolio-similarity|4.3|source
+release-debug-build|2.2|build-setting
+embedded-secret|1.6|source
+localization-format-mismatch|2.1|resource
+purpose-string-localization|5.1.1|resource
+storekit-transaction-listener|3.1.1|source
+bonjour-services-missing|2.1|source
+entitlement-unused|2.5.1|manifest
+privacy-claim-contradiction|2.3.1|source
 STATIC_GUIDELINE_TABLE
 
 if [[ "$STATIC_EMOJI_STATUS" != SKIP ]]; then

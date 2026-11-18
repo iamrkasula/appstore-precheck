@@ -222,5 +222,108 @@
       "App.swift": "import StoreKit\nfunc askForRating() { SKStoreReviewController.requestReview() }\nlet reviewPrompt = ReviewPromptView(reviewCount: 3)"
     },
     "skip": {}
+  },
+  {
+    "number": 74,
+    "guideline": "2.2",
+    "rule_id": "release-debug-build",
+    "positive": {
+      "App.swift": "let x = 1",
+      "App.xcodeproj/xcshareddata/xcschemes/App.xcscheme": "<Scheme><ArchiveAction buildConfiguration = \"Debug\" revealArchiveInOrganizer = \"YES\"></ArchiveAction></Scheme>"
+    },
+    "clean": {
+      "App.swift": "let x = 1",
+      "App.xcodeproj/xcshareddata/xcschemes/App.xcscheme": "<Scheme><ArchiveAction buildConfiguration = \"Release\" revealArchiveInOrganizer = \"YES\"></ArchiveAction></Scheme>"
+    }
+  },
+  {
+    "number": 75,
+    "guideline": "1.6",
+    "rule_id": "embedded-secret",
+    "positive": {
+      "App.swift": "let anthropicKey = \"sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\""
+    },
+    "clean": {
+      "App.swift": "let key = ProcessInfo.processInfo.environment[\"API_KEY\"] ?? \"\"\n#if DEBUG\nlet localKey = \"sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n#endif"
+    }
+  },
+  {
+    "number": 76,
+    "guideline": "2.1",
+    "rule_id": "localization-format-mismatch",
+    "positive": {
+      "App.swift": "let x = 1",
+      "Localizable.xcstrings": "{\"sourceLanguage\": \"en\", \"version\": \"1.0\", \"strings\": {\"%@ items\": {\"localizations\": {\"de\": {\"stringUnit\": {\"state\": \"translated\", \"value\": \"%d Elemente\"}}}}}}"
+    },
+    "clean": {
+      "App.swift": "let x = 1",
+      "Localizable.xcstrings": "{\"sourceLanguage\": \"en\", \"version\": \"1.0\", \"strings\": {\"%@ items\": {\"localizations\": {\"de\": {\"stringUnit\": {\"state\": \"translated\", \"value\": \"%1$@ Elemente\"}}}}}}"
+    }
+  },
+  {
+    "number": 77,
+    "guideline": "5.1.1",
+    "rule_id": "purpose-string-localization",
+    "positive": {
+      "App.swift": "let x = 1",
+      "Info.plist": "<plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>com.example.app</string><key>NSCameraUsageDescription</key><string>Scan receipts with the camera.</string></dict></plist>",
+      "Localizable.xcstrings": "{\"sourceLanguage\": \"en\", \"version\": \"1.0\", \"strings\": {\"%@ items\": {\"localizations\": {\"de\": {\"stringUnit\": {\"state\": \"translated\", \"value\": \"%@ Elemente\"}}}}}}"
+    },
+    "clean": {
+      "App.swift": "let x = 1",
+      "Info.plist": "<plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>com.example.app</string><key>NSCameraUsageDescription</key><string>Scan receipts with the camera.</string></dict></plist>",
+      "Localizable.xcstrings": "{\"sourceLanguage\": \"en\", \"version\": \"1.0\", \"strings\": {\"%@ items\": {\"localizations\": {\"de\": {\"stringUnit\": {\"state\": \"translated\", \"value\": \"%@ Elemente\"}}}}}}",
+      "de.lproj/InfoPlist.strings": "\"NSCameraUsageDescription\" = \"Belege mit der Kamera scannen.\";"
+    }
+  },
+  {
+    "number": 78,
+    "guideline": "3.1.1",
+    "rule_id": "storekit-transaction-listener",
+    "positive": {
+      "Store.swift": "import StoreKit\nfunc buy() async throws { let p = try await Product.products(for: [\"pro\"]); _ = try await p[0].purchase() }"
+    },
+    "clean": {
+      "Store.swift": "import StoreKit\nfunc buy() async throws { let p = try await Product.products(for: [\"pro\"]); _ = try await p[0].purchase() }\nfunc listen() { Task { for await update in Transaction.updates { _ = update } } }"
+    }
+  },
+  {
+    "number": 79,
+    "guideline": "2.1",
+    "rule_id": "bonjour-services-missing",
+    "positive": {
+      "Info.plist": "<plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>com.example.app</string><key>NSCameraUsageDescription</key><string>Scan receipts with the camera.</string></dict></plist>",
+      "Browse.swift": "import Network\nlet b = NWBrowser(for: .bonjour(type: \"_receipts._tcp\", domain: nil), using: .tcp)"
+    },
+    "clean": {
+      "Info.plist": "<plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>com.example.app</string><key>NSCameraUsageDescription</key><string>Scan receipts with the camera.</string><key>NSBonjourServices</key><array><string>_receipts._tcp</string></array></dict></plist>",
+      "Browse.swift": "import Network\nlet b = NWBrowser(for: .bonjour(type: \"_receipts._tcp\", domain: nil), using: .tcp)"
+    }
+  },
+  {
+    "number": 80,
+    "guideline": "2.5.1",
+    "rule_id": "entitlement-unused",
+    "positive": {
+      "App.swift": "let x = 1",
+      "App.entitlements": "<plist version=\"1.0\"><dict><key>com.apple.developer.healthkit</key><true/></dict></plist>"
+    },
+    "clean": {
+      "Health.swift": "import HealthKit\nlet store = HKHealthStore()",
+      "App.entitlements": "<plist version=\"1.0\"><dict><key>com.apple.developer.healthkit</key><true/></dict></plist>"
+    }
+  },
+  {
+    "number": 81,
+    "guideline": "2.3.1",
+    "rule_id": "privacy-claim-contradiction",
+    "positive": {
+      "fastlane/metadata/en-US/description.txt": "Your notes never leave your device.",
+      "Sync.swift": "import FirebaseAnalytics\nAnalytics.logEvent(\"open\", parameters: nil)"
+    },
+    "clean": {
+      "fastlane/metadata/en-US/description.txt": "Your notes never leave your device.",
+      "Notes.swift": "let notes = [String]()"
+    }
   }
 ]

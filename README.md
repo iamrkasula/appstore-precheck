@@ -48,11 +48,11 @@ each, divided by horizontal rules), not one compressed sentence. The breakdown b
 
 ## What it checks
 
-Coverage inventory: 94/104 leaf sections (90%); 94 touched, 2 positive-only; 72 static vectors, 56 deep-review checks, 20 dynamic checks, 5 vision checks, 10 human-only sections.
+Coverage inventory: 94/104 leaf sections (90%); 94 touched, 2 positive-only; 81 static vectors, 56 deep-review checks, 20 dynamic checks, 5 vision checks, 10 human-only sections.
 
 The percentage counts sections touched, not automatic verification of every requirement; see [the coverage inventory](docs/guideline-coverage.md).
 
-72 rejection vectors across code, fastlane metadata, screenshots, `PrivacyInfo.xcprivacy`, and the paywall:
+81 rejection vectors across code, fastlane metadata, screenshots, `PrivacyInfo.xcprivacy`, and the paywall:
 
 | Guideline | Check |
 |-----------|-------|
@@ -127,6 +127,15 @@ The percentage counts sections touched, not automatic verification of every requ
 | **4.7.2** | All four signals must coexist in one file: handler, remote JS URL, evaluation and native-sensitive API. Does not resolve bridge access control. |
 | **5.2.4** | Narrow English endorsement/official-product patterns; authorized claims still require human confirmation. Ordinary iPhone compatibility text stays clean. |
 | **2.5.19** | Review-detection / hide-for-review keys, App Store build-flag branches, date-gated unlocks and obfuscation tooling; store-review prompts and product-review vocabulary stay clean. A hit asks "show the reviewer what ships", it is not proof of a hidden feature. |
+| **4.3(a)** | *Opt-in* `--portfolio <dir>`: near-identical sibling apps (shared names, strings, assets, dependencies) — one app instead of many Bundle IDs |
+| **2.2** | Archive scheme set to Debug, `DEBUG` in a Release configuration, or Release built `-Onone` |
+| **1.6** | Server-side credentials (LLM, AWS, Stripe live, GitHub/Slack, private keys, Supabase service_role) embedded in release source, plists or xcconfig — value never echoed |
+| **2.1** | Translations whose format specifiers differ from the source (`%@` vs `%lld`) in String Catalogs or `.strings` |
+| **5.1.1** | Permission purpose strings not localized in a localized app (`InfoPlist.xcstrings` / `InfoPlist.strings`) |
+| **3.1.1** | StoreKit 2 purchases without a `Transaction.updates` listener (renewals, refunds, Ask to Buy missed) |
+| **2.1** | Bonjour browsing without `NSBonjourServices` (local discovery fails on iOS 14+) |
+| **2.5.1** | Sensitive entitlements (HealthKit, HomeKit, Network Extension, NFC, Apple Pay, …) with no code using them |
+| **2.3.1** | Offline / on-device / "no data collected" claims contradicted by cloud-AI or analytics/attribution SDK data flow |
 
 Paywall checks are skipped automatically when no in-app-purchase signals are present, and the
 advisory warnings require their documented trigger. Missing inputs are recorded in the JSON coverage gaps.
@@ -422,7 +431,7 @@ nothing is auto-fixed.
 | Phase | Step |
 |-------|------|
 | **0** | **Guideline drift**: diff the live App Store Review Guidelines against a tracked baseline. Never blocks. |
-| **1** | **Static scan**: `scan.sh` over the 72 vectors above. Every finding is labelled with the artifact it was read from and who enforces it — see [Evidence strength](#evidence-strength). |
+| **1** | **Static scan**: `scan.sh` over the 81 vectors above. Every finding is labelled with the artifact it was read from and who enforces it — see [Evidence strength](#evidence-strength). |
 | **2** | **`fastlane precheck`**: Apple's own metadata rule engine. |
 | **3** | **Pierre commentary**: explains **every** FAIL and WARN from Phases 0–2 in 2–3 sentences each, quoting Apple's pinned guideline text rather than his memory — see [Guideline citations](#guideline-citations). |
 | **4** | **Pierre deep review**: 56 semantic checks (Tier A, heuristic Tier B and host vision Tier C), plus 5 screenshot-vision checks when screenshots are present. Advisory only. |

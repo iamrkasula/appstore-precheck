@@ -5,8 +5,23 @@ All notable changes to this project are documented here. Versioning follows
 
 ## [Unreleased]
 
+### Added
+- Nine advisory static vectors (WARN only, never FAIL), run by the modular static reader:
+  - **§73 `portfolio-similarity` (4.3(a))** — *opt-in* via `--portfolio <dir>` (repeatable) or config `.portfolio`: compares the app with sibling app repos (weighted Jaccard of source file/type names, string literals, asset names, dependencies) and WARNs at ≥ 0.60 overall similarity. Silent when not requested, so default output is unchanged.
+  - **§74 `release-debug-build` (2.2)** — scheme archives a Debug configuration, `DEBUG` in a Release configuration, or Release built `-Onone`.
+  - **§75 `embedded-secret` (1.6)** — server-side credentials (LLM/AWS/Stripe live/GitHub/Slack/private keys/Supabase service_role) in release source, plists or xcconfig; public client keys excluded; value redacted.
+  - **§76 `localization-format-mismatch` (2.1)** — translated format specifiers that differ from the source, understanding positional `%n$` and `%#@sub@` substitutions.
+  - **§77 `purpose-string-localization` (5.1.1)** — usage descriptions not localized in a localized app.
+  - **§78 `storekit-transaction-listener` (3.1.1)** — StoreKit 2 purchases without a `Transaction.updates` listener (subscription SDKs count as listeners).
+  - **§79 `bonjour-services-missing` (2.1)** — Bonjour browsing without `NSBonjourServices`.
+  - **§80 `entitlement-unused` (2.5.1)** — sensitive entitlements with no code using their API.
+  - **§81 `privacy-claim-contradiction` (2.3.1)** — offline/on-device/no-data claims contradicted by cloud-AI or analytics SDK data flow.
+- Release-risk checks (§75, §78, §79, §81) read source with `#if DEBUG` branches and SwiftUI preview code removed, so debug tooling is not reported.
+
+Coverage inventory: 94/104 leaf sections (90%); 94 touched, 2 positive-only; 81 static vectors, 56 deep-review checks, 20 dynamic checks, 5 vision checks, 10 human-only sections.
+
 ### Changed
-- README visuals redrawn: the social preview carries the current numbers (72 static vectors, 56 deep checks, 20 dynamic, 94/104 sections) and all five hosts; a new "How it works" pipeline graphic sits above the phase table. Sources live in `assets/src/` and render with `bash assets/src/render.sh` (headless Chrome); the demo GIFs were re-recorded from the current CLI with the existing vhs tapes.
+- README visuals redrawn: the social preview carries the current numbers (81 static vectors, 56 deep checks, 20 dynamic, 94/104 sections) and all five hosts; a new "How it works" pipeline graphic sits above the phase table. Sources live in `assets/src/` and render with `bash assets/src/render.sh` (headless Chrome); the demo GIFs were re-recorded from the current CLI with the existing vhs tapes.
 
 ## [1.21.0] — 2026-10-17
 
